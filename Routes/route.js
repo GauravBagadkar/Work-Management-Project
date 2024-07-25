@@ -29,5 +29,9 @@ router.post('/createTask', userController.createTaskApi);
 router.post('/tskPriorityApi', userController.tskPriorityApi);
 router.post('/tskStatusApi', userController.tskStatusApi);
 router.get('/showEmpDetails', userController.showEmpDetails);
+router.post('/createNotes', userController.createNotes);
+router.post('/updateNotes', userController.updateNotes);
+router.post('/deleteNotes', userController.deleteNotes);
+router.post('/createProject', userController.projectApi);
 
 module.exports = router;

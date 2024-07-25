@@ -9,16 +9,16 @@ const transporter = require('../Config/nodemailerConfig');
 
 const { validationResult } = require("express-validator");
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt'); // for hashing the password
 const saltRounds = 10;
 
-const multer = require('multer');
+const multer = require('multer'); // for uploading the photo
 
 //const nodemailer = require('nodemailer'); // sending mail to any user
 //const randomstring = require('randomstring'); // generate random token
 
 const { Op } = require('sequelize');
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');  // generating random token
 
 const Mp = Sequelize.Op;
 
@@ -30,6 +30,7 @@ const Project = db.project;
 const Task = db.task;
 const Priority = db.priority;
 const Status = db.status;
+const Notes = db.notes;
 
 // Profile_Pic Upload by using MULTER  :- ✔
 var storage = multer.diskStorage({
@@ -116,6 +117,7 @@ exports.updateProfilePic = async (req, res) => {
 
 // organisation api :- ✔
 exports.orgRegistration = async (req, res) => {
+    const currentDate = new Date(Date.now()).toISOString().split('T')[0];
     const emailExist = await Org.findOne({ where: { orgEmail: req.body.email } })
     try {
         if (emailExist) {
@@ -129,9 +131,32 @@ exports.orgRegistration = async (req, res) => {
                         contact: req.body.contact,
                         address: req.body.address,
                         password: hash
-                    });
-                    theData.password = undefined;
-                    res.status(200).json({ dataIs: theData, message: "org table data added successfully" });
+                    })
+                        .then(async (theData) => {
+                            if (theData) {
+                                await User.create({
+
+                                    name: req.body.name,
+                                    // gender: req.body.gender,
+                                    email: req.body.email,
+                                    address: req.body.address,
+                                    contact: req.body.contact,
+                                    // dob: req.body.dob,
+                                    joinDate: currentDate,
+                                    password: hash,
+                                    roleId: 1,
+                                    deptId: 10,
+                                    orgId: theData.id,
+                                    isSuperAdmin: 1
+                                })
+
+                                theData.password = undefined;
+                                res.status(200).json({ dataIs: theData, message: "Organization table data added successfully" });
+                            } else {
+                                res.status(200).json({ dataIs: theData, message: "Failed to add Organization" });
+
+                            }
+                        })
                 })
             })
         }
@@ -147,7 +172,7 @@ exports.registerUserApi = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            res.status(400).json({ message: errors.array()[0].msg });
+            res.status(200).json({ message: errors.array()[0].msg });
             return;
         } else {
             const emailExist = await User.findOne({ where: { email: req.body.email } })
@@ -195,9 +220,10 @@ exports.userLogin = async (req, res) => {
                 if (err) throw err
 
                 if (result) {
-                    return res.status(200).json({ success: 1, msg: "Login success", data: result })
+                    emailExist.password = undefined;
+                    return res.status(200).json({ success: 1, msg: "Login success", data: emailExist })
                 } else {
-                    return res.status(401).json({ success: 0, msg: "Invalid credential" })
+                    return res.status(200).json({ success: 0, msg: "Invalid credential" })
                 }
             })
         }
@@ -263,11 +289,11 @@ exports.roleList = async (req, res) => {
     }
 }
 
-// show employee details
+// show employee details :- ✔
 exports.showEmpDetails = async (req, res) => {
     try {
         const showData = await User.findAll({
-            attributes: ['name', 'email', 'gender', 'dob', 'joinDate', 'deptId', 'roleId'],
+            attributes: ['id', 'name', 'email', 'gender', 'dob', 'joinDate', 'deptId', 'roleId'],
             include: [
                 {
                     model: Dept, attributes: ['deptName']
@@ -370,7 +396,7 @@ exports.orgList = async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        res.status(400).json({ success: 0, message: error.message })
+        res.status(200).json({ success: 0, message: error.message })
     }
 }
 
@@ -379,7 +405,7 @@ exports.searchUser = async (req, res) => {
     try {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            res.status(400).json({ message: errors.array()[0].msg });
+            res.status(200).json({ message: errors.array()[0].msg });
             return;
         } else {
             const { email, orgId } = await req.body;
@@ -392,7 +418,7 @@ exports.searchUser = async (req, res) => {
             if (showData.length != 0) {
                 res.status(200).json({ success: 1, showingUser: showData, message: "data search successfully" });
             } else {
-                res.status(400).json({ success: 0, showingUser: showData, message: "users not found" });
+                res.status(200).json({ success: 0, showingUser: showData, message: "users not found" });
             }
         }
     }
@@ -440,7 +466,7 @@ exports.forgotPassword = async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        res.status(400).json({ message: 'Server Error' });
+        res.status(200).json({ message: 'Server Error' });
     }
 };
 
@@ -457,7 +483,7 @@ exports.resetPassword = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid or expired token' });
+            return res.status(200).json({ message: 'Invalid or expired token' });
         }
 
         // Hash the new password
@@ -473,7 +499,7 @@ exports.resetPassword = async (req, res) => {
         res.json({ message: 'Password reset successful' });
     } catch (err) {
         console.error(err);
-        res.status(400).json({ message: 'Server Error' });
+        res.status(200).json({ message: 'Server Error' });
     }
 };
 
@@ -526,7 +552,7 @@ exports.changePassword = (req, res) => {
                     }
                 })
                 .catch(err => {
-                    res.status(400).json({ message: err.message });
+                    res.status(200).json({ message: err.message });
                 });
         }
     }
@@ -547,7 +573,7 @@ exports.tskPriorityApi = async (req, res) => {
     }
     catch (error) {
         console.log(error);
-        res.status(400).json({ success: 0, message: error.message });
+        res.status(200).json({ success: 0, message: error.message });
     }
 }
 
@@ -562,7 +588,7 @@ exports.tskStatusApi = async (req, res) => {
     }
     catch (error) {
         console.log(error);
-        res.status(400).json({ success: 0, message: error.message });
+        res.status(200).json({ success: 0, message: error.message });
     }
 }
 
@@ -576,7 +602,7 @@ exports.tskPriorityList = async (req, res) => {
     }
     catch (error) {
         console.log(error);
-        res.status(400).json({ success: 0, message: error.message });
+        res.status(200).json({ success: 0, message: error.message });
     }
 }
 
@@ -590,7 +616,7 @@ exports.tskStatusList = async (req, res) => {
     }
     catch (error) {
         console.log(error);
-        res.status(400).json({ success: 0, message: error.message });
+        res.status(200).json({ success: 0, message: error.message });
     }
 }
 
@@ -611,6 +637,75 @@ exports.createTaskApi = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(400).json({ success: 0, message: error.message })
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// Notes :-
+exports.createNotes = async (req, res) => {
+    try {
+        const data = await User.findOne({ where: { id: req.body.userId } })
+        if (!data) {
+            res.status(200).json({ success: 0, message: "User not exist" });
+        }
+        else {
+            const createnote = await Notes.create({
+                notesName: req.body.notesName, userId: req.body.userId
+            })
+            res.status(200).json({ success: 1, data: createnote, message: "Notes created successfully" });
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+//
+exports.updateNotes = async (req, res) => {
+    try {
+        const data = await Notes.update({
+            notesName: req.body.notesName
+        },
+            {
+                where: { id: req.body.id },
+            })
+        res.status(200).json({ success: 1, data: data, message: "Notes updated successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// 
+exports.deleteNotes = async (req, res) => {
+    try {
+        const data = await Notes.destroy({
+            where: { id: req.body.id },
+        })
+        res.status(200).json({ success: 1, data: data, message: "Notes deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+//create project api
+exports.projectApi = async (req, res) => {
+    try {
+        const data = await Project.create({
+            proName: req.body.proName,
+            proDesc: req.body.proDesc,
+            startDate: req.body.startDate,
+            deadLine: req.body.deadLine,
+            proLead: req.body.proLead,
+            deptId: req.body.deptId,
+            client: req.body.client
+        })
+        res.status(200).json({ success: 1, data: data, message: "Project created successfully" });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
     }
 }

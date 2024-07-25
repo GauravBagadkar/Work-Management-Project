@@ -8,7 +8,7 @@ dbConfig.sequelize.sync({ force: false });
 
 app.use(express.json());
 
-
+//middleware that helps handle Cross-Origin Resource Sharing (CORS) in your Express application.
 const cors = require('cors');
 var corsOptions = {
     origin: '*',
@@ -27,8 +27,10 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Headers", 'Content-Type,Authorization');
     next();
 });
+
 const routes = require('./Routes/route');
 app.use('/', routes);
+
 // Error handler middleware
 app.use((err, req, res, next) => {
     console.log(err.message);

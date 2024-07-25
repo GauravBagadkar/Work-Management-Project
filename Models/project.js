@@ -17,6 +17,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         proLead: {
             type: Sequelize.STRING
+        },
+        client: {
+            type: Sequelize.STRING
         }
     })
     return project;
