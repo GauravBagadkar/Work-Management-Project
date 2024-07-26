@@ -1,10 +1,22 @@
+require('dotenv').config();
 const Sequelize = require('sequelize').Sequelize;
 
-const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
-    host: 'localhost',
+
+// const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
+//     host: 'localhost',
+//     dialect: 'postgres',
+//     port: '5432',
+//     logging: false
+// });
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
-    port: '5432',
-    logging: false
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
+    }
 });
 
 const db = {};
