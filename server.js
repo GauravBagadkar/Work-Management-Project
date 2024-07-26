@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-port = 4000;
+const port = process.env.PORT || 4000;
 
 const dbConfig = require('./Config/dbConfig');
 //const transporter = require('./Config/nodemailerConfig');
@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 });
 
 const routes = require('./Routes/route');
-app.use('/', routes);
+app.use('/api', routes);
 
 // Error handler middleware
 app.use((err, req, res, next) => {
