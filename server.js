@@ -3,7 +3,7 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 const dbConfig = require('./Config/dbConfig');
-//const transporter = require('./Config/nodemailerConfig');
+
 dbConfig.sequelize.sync({ force: false });
 
 app.use(express.json());
