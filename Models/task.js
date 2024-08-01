@@ -21,11 +21,11 @@ module.exports = (sequelize, Sequelize) => {
         },
         startTaskTime: {
             type: Sequelize.TIME,
-            defaultValue: Sequelize.NOW
+            // defaultValue: Sequelize.NOW
         },
         endTaskTime: {
             type: Sequelize.TIME,
-            defaultValue: Sequelize.NOW
+            // defaultValue: Sequelize.NOW
         },
         totalTaskTime: {//
             type: Sequelize.TIME
@@ -36,11 +36,11 @@ module.exports = (sequelize, Sequelize) => {
         },
         startPauseTime: {
             type: Sequelize.TIME,
-            defaultValue: Sequelize.NOW
+            // defaultValue: Sequelize.NOW
         },
         endPauseTime: {
             type: Sequelize.TIME,
-            defaultValue: Sequelize.NOW
+            // defaultValue: Sequelize.NOW
         },
         totalPauseTime: {//
             type: Sequelize.TIME
@@ -59,7 +59,7 @@ module.exports = (sequelize, Sequelize) => {
         },
         statusId: {
             type: Sequelize.BIGINT
-        }
+        },
 
     })
     return task;

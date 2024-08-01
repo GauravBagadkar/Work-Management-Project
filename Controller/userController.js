@@ -1,9 +1,8 @@
 const db = require('../Config/dbConfig');
-const { Sequelize } = require('sequelize');
+const { Sequelize, where } = require('sequelize');
 
 const fs = require('fs');
 const path = require('path');
-let nextBlock;
 
 const transporter = require('../Config/nodemailerConfig');
 
@@ -19,7 +18,6 @@ const multer = require('multer'); // for uploading the photo
 
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');  // generating random token
-
 const Mp = Sequelize.Op;
 
 const Org = db.orgs;
@@ -31,6 +29,8 @@ const Task = db.task;
 const Priority = db.priority;
 const Status = db.status;
 const Notes = db.notes;
+const Client = db.client;
+const ProjectAssign = db.projectAssign
 
 // Profile_Pic Upload by using MULTER  :- ✔
 var storage = multer.diskStorage({
@@ -213,7 +213,7 @@ exports.userLogin = async (req, res) => {
             where: { email: req.body.email }
         })
         if (!emailExist) {
-            res.status(200).json({ message: "user does not exist" })
+            res.status(200).json({ success: 0, message: "user does not exist" })
         } else {
             bcrypt.compare(req.body.password, emailExist.password, (err, result) => {
 
@@ -293,7 +293,7 @@ exports.roleList = async (req, res) => {
 exports.showEmpDetails = async (req, res) => {
     try {
         const showData = await User.findAll({
-            attributes: ['id', 'name', 'email', 'gender', 'dob', 'joinDate', 'deptId', 'roleId'],
+            attributes: ['id', 'name', 'email', 'gender', 'dob', 'joinDate', 'deptId', 'roleId', 'contact', 'address'],
             include: [
                 {
                     model: Dept, attributes: ['deptName']
@@ -350,10 +350,13 @@ exports.updateUser = async (req, res) => {
             bcrypt.genSalt(saltRounds, async function (err, salt) {
                 bcrypt.hash(req.body.password, salt, async function (err, hash) {
                     const updateData = await User.update({
+                        name: req.body.name,
+                        roleId: req.body.roleId,
+                        deptId: req.body.deptId,
+                        dob: req.body.dob,
+                        gender: req.body.gender,
                         address: req.body.address,
                         contact: req.body.contact,
-                        profile: req.body.profilepic,
-                        password: hash
                     },
                         {
                             where: { id: req.body.id },
@@ -456,7 +459,7 @@ exports.forgotPassword = async (req, res) => {
 
             html: `<b>PASSWORD RESET LINK :- </b>\n\n`
 
-                + `http://${req.headers.host}/resetPassword/${resToken}\n\n`
+                + `http://${req.headers.host}/resetPassword?TOKEN=${resToken}`
 
                 + `If you did not request this, please ignore this email and your password will remain unchanged.\n`,
         });
@@ -628,9 +631,9 @@ exports.createTaskApi = async (req, res) => {
             taskDesc: req.body.taskDesc,
             startDate: req.body.startDate,
             endDate: req.body.endDate,
-            proId: req.body.projectId,
-            priorityId: req.body.priorityId,
-            statusId: req.body.statusId,
+            proId: req.body.projectId,//
+            priorityId: req.body.priorityId,//
+            statusId: req.body.statusId,//
             userId: req.body.userId
         })
         res.status(200).json({ success: 1, message: "task created successfully" });
@@ -700,11 +703,113 @@ exports.projectApi = async (req, res) => {
             deadLine: req.body.deadLine,
             proLead: req.body.proLead,
             deptId: req.body.deptId,
-            client: req.body.client
+            clientId: req.body.clientId,
+            orgId: req.body.orgId
         })
         res.status(200).json({ success: 1, data: data, message: "Project created successfully" });
     }
     catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// Add client Api :-
+exports.addClientApi = async (req, res) => {
+    try {
+        const data = await Client.create({
+            clientName: req.body.clientName
+        })
+        res.status(200).json({ success: 1, data: data, message: "Client Name created successfully" });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// drop down client api :-
+exports.clientList = async (req, res) => {
+    try {
+        const showData = await Client.findAll({
+            attributes: ['id', 'clientName']
+        })
+        res.status(200).json({ success: 1, data: showData });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
+    }
+}
+
+// project assign :-
+exports.projectAssign = async (req, res) => {
+    const { proId, id, userId } = req.body;
+    try {
+        // Find the project
+        const project = await Project.findOne({
+            where: { id: proId }
+        })
+        if (!project) {
+            return res.status(200).json({ success: 0, error: 'Project not found' });
+        }
+
+        // Assign the project to users
+        for (const uId of userId) {
+            ProjectAssign.findOne({
+                where:
+                {
+                    proId: proId,
+                    userId: uId
+                }
+            })
+                .then(async (develop) => {
+                    if (!develop) {
+                        ProjectAssign.create({
+                            proId: proId,
+                            userId: uId
+                        })
+                    }
+                })
+        }
+        res.status(200).json({ success: 1, message: "Project Assigned successfully" });
+
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// user drop down list according to org :-
+exports.userDropDownList = async (req, res) => {
+    try {
+        const data = await User.findAll({
+            attributes: ['id', 'name'],
+            where: { orgId: req.body.orgId },
+        })
+        res.status(200).json({ success: 1, data: data });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// project assign user list:-
+exports.proAssignUserList = async (req, res) => {
+    try {
+        const data = await ProjectAssign.findAll({
+            where: {
+                proId: req.body.proId
+            },
+            include:
+            {
+                model: User, as: 'tblUsers', attributes: ['id', 'name']
+            }
+        });
+        // Extract user data into a flat array
+        const userData = data.map(assign => assign.tblUsers);
+        res.status(200).json({ success: 1, data: userData, message: "showing assigned user in project" })
+    } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
     }

@@ -17,5 +17,6 @@ exports.validate = (method) => {
                 body('orgId', "Enter organisation id"),
             ]
         }
+
     }
 }
