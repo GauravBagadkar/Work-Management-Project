@@ -8,6 +8,7 @@ router.get('/roleList', userController.roleList);
 router.get('/priorityList', userController.tskPriorityList);
 router.get('/statusList', userController.tskStatusList);
 router.get('/clientList', userController.clientList);
+router.get('/showEmpDetails', userController.showEmpDetails);
 
 router.post('/orgApi', userController.orgRegistration);
 router.post('/registerUserApi', validation.validate('signup'), userController.registerUserApi);
@@ -26,7 +27,6 @@ router.post('/changePassword', userController.changePassword);
 router.post('/createTask', userController.createTaskApi);
 router.post('/tskPriorityApi', userController.tskPriorityApi);
 router.post('/tskStatusApi', userController.tskStatusApi);
-router.get('/showEmpDetails', userController.showEmpDetails);
 router.post('/createNotes', userController.createNotes);
 router.post('/updateNotes', userController.updateNotes);
 router.post('/deleteNotes', userController.deleteNotes);

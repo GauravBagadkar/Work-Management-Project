@@ -1,7 +1,6 @@
 require('dotenv').config();
-import pg from 'pg';
+const pg = require('pg');
 const Sequelize = require('sequelize').Sequelize;
-
 
 // const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
 //     host: 'localhost',
@@ -38,6 +37,7 @@ db.status = require('../Models/tskStatus')(sequelize, Sequelize);
 db.notes = require('../Models/notes')(sequelize, Sequelize);
 db.client = require('../Models/client')(sequelize, Sequelize);
 db.projectAssign = require('../Models/projectAssign')(sequelize, Sequelize);
+db.orgUser = require('../Models/orgUsers')(sequelize, Sequelize);
 
 // db.category = require('../Models/tskCategory')(sequelize, Sequelize);
 // db.assign = require('../Models/tskAssign')(sequelize, Sequelize);
@@ -46,7 +46,11 @@ db.projectAssign = require('../Models/projectAssign')(sequelize, Sequelize);
 // connecting models
 db.user.belongsTo(db.dept, { foreignKey: 'deptId' });
 db.user.belongsTo(db.role, { foreignKey: 'roleId' });
-db.user.belongsTo(db.orgs, { foreignKey: 'orgId' });
+//db.user.belongsTo(db.orgs, { foreignKey: 'orgId' });
+
+
+db.orgUser.belongsTo(db.user, { foreignKey: 'userId' });
+db.orgUser.belongsTo(db.orgs, { foreignKey: 'orgId' });
 
 db.task.belongsTo(db.priority, { foreignKey: 'priorityId' });
 db.task.belongsTo(db.status, { foreignKey: 'statusId' });
@@ -57,12 +61,10 @@ db.task.belongsTo(db.user, { foreignKey: 'userId' });
 db.notes.belongsTo(db.user, { foreignKey: 'userId' });
 
 db.project.belongsTo(db.client, { foreignKey: 'clientId' });
-console.log("done");
 db.project.belongsTo(db.orgs, { foreignKey: 'orgId' });
-console.log("done2");
 //db.project.belongsTo(db.user, { foreignKey: 'userId' });
 
-db.projectAssign.belongsTo(db.user, { as: 'tblUsers', foreignKey: 'userId' })
+db.projectAssign.belongsTo(db.user, { foreignKey: 'userId' })
 db.projectAssign.belongsTo(db.project, { foreignKey: 'proId' })
 
 module.exports = db;

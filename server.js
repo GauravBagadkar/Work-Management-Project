@@ -1,5 +1,8 @@
 const express = require('express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const app = express();
+
 const port = process.env.PORT || 4000;
 
 const dbConfig = require('./Config/dbConfig');
@@ -21,16 +24,44 @@ app.use(cors(corsOptions))
 // Enable CORS for all requests
 app.use(express.json())
 app.use((req, res, next) => {
-    // console.log(req);
     res.setHeader("Access-Control-Allow-Origin", '*');
     res.setHeader("Access-Control-Allow-Methods", 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
     res.setHeader("Access-Control-Allow-Headers", 'Content-Type,Authorization');
     next();
 });
 
+// Swagger definition
+const swaggerDefinition = {
+    openapi: '3.0.0',
+    info: {
+        title: 'Work Management Project',
+        version: '1.0.0',
+        description: 'A description of your API',
+    },
+    servers: [
+        {
+            url: 'https://work-management-ashen.vercel.app/api', // Your server URL
+            description: 'Development server',
+        },
+    ],
+};
+
+// Options for the swagger docs
+const options = {
+    swaggerDefinition,
+    // Path to the API docs
+    apis: ['./swaggyRoute/*.js'], // files containing annotations as above
+};
+
+// Initialize swagger-jsdoc
+const swaggerSpec = swaggerJsdoc(options);
+
+// Use swagger-ui-express for your app documentation endpoint
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 const routes = require('./Routes/route');
 app.use('/api', routes);
-
+//api
 // Error handler middleware
 app.use((err, req, res, next) => {
     console.log(err.message);

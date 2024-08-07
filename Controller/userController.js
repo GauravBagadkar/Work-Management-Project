@@ -30,7 +30,8 @@ const Priority = db.priority;
 const Status = db.status;
 const Notes = db.notes;
 const Client = db.client;
-const ProjectAssign = db.projectAssign
+const ProjectAssign = db.projectAssign;
+const OrgUsers = db.orgUser;
 
 // Profile_Pic Upload by using MULTER  :- ✔
 var storage = multer.diskStorage({
@@ -135,21 +136,24 @@ exports.orgRegistration = async (req, res) => {
                         .then(async (theData) => {
                             if (theData) {
                                 await User.create({
-
                                     name: req.body.name,
-                                    // gender: req.body.gender,
                                     email: req.body.email,
                                     address: req.body.address,
                                     contact: req.body.contact,
-                                    // dob: req.body.dob,
                                     joinDate: currentDate,
                                     password: hash,
                                     roleId: 1,
                                     deptId: 10,
-                                    orgId: theData.id,
                                     isSuperAdmin: 1
                                 })
-
+                                    .then(async (theData2) => {
+                                        if (theData2) {
+                                            await OrgUsers.create({
+                                                orgId: theData.id,
+                                                userId: theData2.id
+                                            })
+                                        }
+                                    })
                                 theData.password = undefined;
                                 res.status(200).json({ dataIs: theData, message: "Organization table data added successfully" });
                             } else {
@@ -192,10 +196,17 @@ exports.registerUserApi = async (req, res) => {
                             password: hash,
                             roleId: req.body.roleId,
                             deptId: req.body.deptId,
-                            orgId: req.body.orgId
                         })
-                        inputData.password = undefined;
-                        res.status(200).json({ success: 1, message: "user table data added successfully" });
+                            .then(async (theData) => {
+                                if (theData) {
+                                    await OrgUsers.create({
+                                        orgId: req.body.orgId,
+                                        userId: theData.id
+                                    })
+                                    theData.password = undefined;
+                                    res.status(200).json({ success: 1, message: "user table data added successfully", data: theData });
+                                }
+                            })
                     })
                 })
             }
@@ -209,19 +220,40 @@ exports.registerUserApi = async (req, res) => {
 // user login api :- ✔
 exports.userLogin = async (req, res) => {
     try {
-        const emailExist = await User.findOne({
-            where: { email: req.body.email }
+        const emailExist = await OrgUsers.findOne({
+            attributes: [
+                [Sequelize.col('"tblUser"."name"'), "name"],
+                [Sequelize.col('"tblUser"."email"'), "email"],
+                [Sequelize.col('"tblUser"."gender"'), "gender"],
+                [Sequelize.col('"tblUser"."dob"'), "dob"],
+                [Sequelize.col('"tblUser"."joinDate"'), "joinDate"],
+                [Sequelize.col('"tblUser"."address"'), "address"],
+                [Sequelize.col('"tblUser"."contact"'), "contact"],
+                [Sequelize.col('"tblUser"."profile"'), "profile"],
+                [Sequelize.col('"tblUser"."password"'), "password"],
+                "orgId",
+                "userId"
+            ],
+            include: [
+                {
+                    model: User,
+                    as: "tblUser",
+                    where: { email: req.body.email },
+                    attributes: []
+                }
+            ],
+            raw: true
         })
+
         if (!emailExist) {
             res.status(200).json({ success: 0, message: "user does not exist" })
         } else {
             bcrypt.compare(req.body.password, emailExist.password, (err, result) => {
-
-                if (err) throw err
-
                 if (result) {
                     emailExist.password = undefined;
-                    return res.status(200).json({ success: 1, msg: "Login success", data: emailExist })
+                    return res.status(200).json({
+                        success: 1, msg: "Login success", data: emailExist
+                    })
                 } else {
                     return res.status(200).json({ success: 0, msg: "Invalid credential" })
                 }
@@ -310,7 +342,6 @@ exports.showEmpDetails = async (req, res) => {
         res.status(200).json({ success: 0, message: error.message });
     }
 }
-
 
 // get user Detail :- ✔
 exports.getUserDetail = async (req, res) => {
@@ -746,20 +777,20 @@ exports.clientList = async (req, res) => {
 exports.projectAssign = async (req, res) => {
     const { proId, id, userId } = req.body;
     try {
-        // Find the project
-        const project = await Project.findOne({
-            where: { id: proId }
-        })
-        if (!project) {
-            return res.status(200).json({ success: 0, error: 'Project not found' });
-        }
+        // // Find the project
+        // const project = await Project.findOne({
+        //     where: { id: proId }
+        // })
+        // if (!project) {
+        //     return res.status(200).json({ success: 0, error: 'Project not found' });
+        // }
 
         // Assign the project to users
         for (const uId of userId) {
             ProjectAssign.findOne({
                 where:
                 {
-                    proId: proId,
+                    //proId: proId,
                     userId: uId
                 }
             })
@@ -798,16 +829,20 @@ exports.userDropDownList = async (req, res) => {
 exports.proAssignUserList = async (req, res) => {
     try {
         const data = await ProjectAssign.findAll({
+            attributes: [
+                [Sequelize.col('"tbl_user"."id"'), "id"],
+                [Sequelize.col('"tbl_user"."name"'), "name"],
+            ],
             where: {
                 proId: req.body.proId
             },
             include:
             {
-                model: User, as: 'tblUsers', attributes: ['id', 'name']
+                model: User, as: 'tblUsers', attributes: []
             }
         });
         // Extract user data into a flat array
-        const userData = data.map(assign => assign.tblUsers);
+        // const userData = data.map(assign => assign.tblUsers);
         res.status(200).json({ success: 1, data: userData, message: "showing assigned user in project" })
     } catch (error) {
         console.log(error);
