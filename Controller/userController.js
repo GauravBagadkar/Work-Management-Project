@@ -18,6 +18,7 @@ const multer = require('multer'); // for uploading the photo
 
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');  // generating random token
+const projectAssign = require('../Models/projectAssign');
 const Mp = Sequelize.Op;
 
 const Org = db.orgs;
@@ -749,8 +750,16 @@ exports.projectApi = async (req, res) => {
             proLead: req.body.proLead,
             deptId: req.body.deptId,
             clientId: req.body.clientId,
-            orgId: req.body.orgId
+            orgId: req.body.orgId,
+
         })
+            .then(async (develop) => {
+                if (!develop) {
+                    projectAssign.create({
+                        userId: req.body.userId
+                    })
+                }
+            })
         res.status(200).json({ success: 1, data: data, message: "Project created successfully" });
     }
     catch (error) {
