@@ -60,6 +60,9 @@ module.exports = (sequelize, Sequelize) => {
         statusId: {
             type: Sequelize.BIGINT
         },
+        categoryId: {
+            type: Sequelize.BIGINT
+        },
 
     })
     return task;

@@ -724,6 +724,20 @@ exports.deleteNotes = async (req, res) => {
     }
 }
 
+// Add client Api :-
+exports.addClientApi = async (req, res) => {
+    try {
+        const data = await Client.create({
+            clientName: req.body.clientName
+        })
+        res.status(200).json({ success: 1, data: data, message: "Client Name created successfully" });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
 //create project api
 exports.projectApi = async (req, res) => {
     try {
@@ -745,34 +759,6 @@ exports.projectApi = async (req, res) => {
     }
 }
 
-// Add client Api :-
-exports.addClientApi = async (req, res) => {
-    try {
-        const data = await Client.create({
-            clientName: req.body.clientName
-        })
-        res.status(200).json({ success: 1, data: data, message: "Client Name created successfully" });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// drop down client api :-
-exports.clientList = async (req, res) => {
-    try {
-        const showData = await Client.findAll({
-            attributes: ['id', 'clientName']
-        })
-        res.status(200).json({ success: 1, data: showData });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message });
-    }
-}
-
 // project assign :-
 exports.projectAssign = async (req, res) => {
     const { proId, id, userId } = req.body;
@@ -784,13 +770,18 @@ exports.projectAssign = async (req, res) => {
         // if (!project) {
         //     return res.status(200).json({ success: 0, error: 'Project not found' });
         // }
+        if (!proName || !Array.isArray(userId) || userId.length === 0) {
+            return res.status(400).json({ success: 0, message: "Invalid project name or userId array" });
+        }
+
+        const proId = Project.id;
 
         // Assign the project to users
         for (const uId of userId) {
             ProjectAssign.findOne({
                 where:
                 {
-                    //proId: proId,
+                    proId: proId,
                     userId: uId
                 }
             })
@@ -805,20 +796,6 @@ exports.projectAssign = async (req, res) => {
         }
         res.status(200).json({ success: 1, message: "Project Assigned successfully" });
 
-    } catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// user drop down list according to org :-
-exports.userDropDownList = async (req, res) => {
-    try {
-        const data = await User.findAll({
-            attributes: ['id', 'name'],
-            where: { orgId: req.body.orgId },
-        })
-        res.status(200).json({ success: 1, data: data });
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
@@ -849,3 +826,32 @@ exports.proAssignUserList = async (req, res) => {
         res.status(200).json({ success: 0, message: error.message })
     }
 }
+
+// drop down client api :-
+exports.clientList = async (req, res) => {
+    try {
+        const showData = await Client.findAll({
+            attributes: ['id', 'clientName']
+        })
+        res.status(200).json({ success: 1, data: showData });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
+    }
+}
+
+// user drop down list according to org :-
+exports.userDropDownList = async (req, res) => {
+    try {
+        const data = await User.findAll({
+            attributes: ['id', 'name'],
+            where: { orgId: req.body.orgId },
+        })
+        res.status(200).json({ success: 1, data: data });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
