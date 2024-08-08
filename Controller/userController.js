@@ -233,6 +233,7 @@ exports.userLogin = async (req, res) => {
                 [Sequelize.col('"tblUser"."contact"'), "contact"],
                 [Sequelize.col('"tblUser"."profile"'), "profile"],
                 [Sequelize.col('"tblUser"."password"'), "password"],
+                [Sequelize.col('"tblUser"."roleId"'), "roleId"],
                 "orgId",
                 "userId"
             ],
@@ -663,13 +664,29 @@ exports.createTaskApi = async (req, res) => {
             taskDesc: req.body.taskDesc,
             startDate: req.body.startDate,
             endDate: req.body.endDate,
-            proId: req.body.projectId,//
-            priorityId: req.body.priorityId,//
-            statusId: req.body.statusId,//
-            userId: req.body.userId
+            proId: req.body.projectId,
+            priorityId: req.body.priorityId,
+            statusId: req.body.statusId,
         })
-        res.status(200).json({ success: 1, message: "task created successfully" });
-
+        // task assign to user
+        const proId = req.body.proId;
+        for (const uId of req.body.userId) {
+            const develop = await TaskAssign.findOne({
+                where:
+                {
+                    proId: proId,
+                    userId: uId
+                }
+            });
+            if (!develop) {
+                await TaskAssign.create({
+                    taskId: data.id,
+                    proId: proId,
+                    userId: uId
+                });
+            }
+        }
+        res.status(200).json({ success: 1, data: data, message: "task created & assigned successfully" });
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
@@ -689,45 +706,6 @@ exports.tskCategoryList = async (req, res) => {
         res.status(200).json({ success: 0, message: error.message });
     }
 }
-
-// task assign :-
-exports.tskAssign = async (req, res) => {
-    const { proId, userId } = req.body;
-
-    try {
-        // Validation check
-        // const errors = validationResult(req);
-        // if (!errors.isEmpty()) {
-        //     return res.status(200).json({ message: errors.array()[0].msg });
-        // }
-
-        // Find the task
-        // const task = await Task.findOne({ where: { id: taskId } });
-
-        // if (!task) {
-        //     return res.status(200).json({ success: 0, error: 'Task not found' });
-        // }
-
-        // Assign the task to users
-        for (const uId of userId) {
-            const develop = await TaskAssign.findOne({
-                where: { proId: proId, userId: uId }
-            });
-
-            if (!develop) {
-                await TaskAssign.create({
-                    proId: proId,
-                    userId: uId
-                });
-            }
-        }
-
-        res.status(200).json({ success: 1, data: develop, message: "Task Assigned successfully" });
-    } catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message });
-    }
-};
 
 // Create Notes :-
 exports.createNotes = async (req, res) => {
@@ -819,47 +797,25 @@ exports.projectApi = async (req, res) => {
             clientId: req.body.clientId,
             orgId: req.body.orgId
         })
-        res.status(200).json({ success: 1, data: data, message: "Project created successfully" });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// project assign :-
-exports.projectAssign = async (req, res) => {
-    const { proId, userId } = req.body;
-    try {
-        // // Find the project
-        // const project = await Project.findOne({
-        //     where: { id: proId }
-        // })
-        // if (!project) {
-        //     return res.status(200).json({ success: 0, error: 'Project not found' });
-        // }
-
-        // Assign the project to users
-        for (const uId of userId) {
-            ProjectAssign.findOne({
+        // project assign to user
+        for (const uId of req.body.userId) {
+            const develop = await ProjectAssign.findOne({
                 where:
                 {
-                    //proId: proId,
                     userId: uId
                 }
-            })
-                .then(async (develop) => {
-                    if (!develop) {
-                        ProjectAssign.create({
-                            proId: proId,
-                            userId: uId
-                        })
-                    }
-                })
-        }
-        res.status(200).json({ success: 1, message: "Project Assigned successfully" });
+            });
 
-    } catch (error) {
+            if (!develop) {
+                await ProjectAssign.create({
+                    proId: data.id,
+                    userId: uId
+                });
+            }
+        }
+        res.status(200).json({ success: 1, data: data, message: "Project created & assigned successfully" });
+    }
+    catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
     }

@@ -26,7 +26,7 @@ router.post('/resetPassword', userController.resetPassword);
 router.post('/changePassword', userController.changePassword);
 router.post('/createTask', userController.createTaskApi);
 router.post('/tskCategoryList', userController.tskCategoryList);
-router.post('/tskAssign', userController.tskAssign);
+// router.post('/tskAssign', userController.tskAssign);
 
 router.post('/tskPriorityApi', userController.tskPriorityApi);
 router.post('/tskStatusApi', userController.tskStatusApi);
@@ -36,7 +36,7 @@ router.post('/deleteNotes', userController.deleteNotes);
 router.post('/createProject', userController.projectApi);
 router.post('/addClient', userController.addClientApi);
 router.post('/userDropDownList', userController.userDropDownList);
-router.post('/projectAssign', userController.projectAssign);
+// router.post('/projectAssign', userController.projectAssign);
 router.post('/proAssignUserList', userController.proAssignUserList);
 
 module.exports = router;
