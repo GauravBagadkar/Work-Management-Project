@@ -656,6 +656,25 @@ exports.tskStatusList = async (req, res) => {
     }
 }
 
+// Create category 
+exports.tskCategoryApi = async (req, res) => {
+    try {
+        // const errors = validationResult(req);
+        // if (!errors.isEmpty()) {
+        //     return res.status(200).json({ success: 0, message: errors.array()[0].msg });
+        // }
+
+        const data = await TaskCategory.create({
+            tskCategoryName: req.body.tskCategoryName
+        });
+        res.status(200).json({ success: 1, data: data, message: "Task Category added successfully" });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
+    }
+}
+
 // Create Task :- ✔
 exports.createTaskApi = async (req, res) => {
     try {
