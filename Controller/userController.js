@@ -33,6 +33,8 @@ const Notes = db.notes;
 const Client = db.client;
 const ProjectAssign = db.projectAssign;
 const OrgUsers = db.orgUser;
+const TaskCategory = db.taskCategory;
+const TaskAssign = db.taskAssign;
 
 // Profile_Pic Upload by using MULTER  :- ✔
 var storage = multer.diskStorage({
@@ -115,7 +117,6 @@ exports.updateProfilePic = async (req, res) => {
         res.status(200).json({ message: error.message });
     }
 }
-
 
 // organisation api :- ✔
 exports.orgRegistration = async (req, res) => {
@@ -596,7 +597,6 @@ exports.changePassword = (req, res) => {
     }
 };
 
-
 // TASK
 // create priority :- ✔
 exports.tskPriorityApi = async (req, res) => {
@@ -676,7 +676,60 @@ exports.createTaskApi = async (req, res) => {
     }
 }
 
-// Notes :-
+// task Category list  :-
+exports.tskCategoryList = async (req, res) => {
+    try {
+        const showData = await TaskCategory.findAll({
+            attributes: ['id', 'tskCategoryName']
+        })
+        res.status(200).json({ success: 1, data: showData });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
+    }
+}
+
+// task assign :-
+exports.tskAssign = async (req, res) => {
+    const { proId, userId } = req.body;
+
+    try {
+        // Validation check
+        // const errors = validationResult(req);
+        // if (!errors.isEmpty()) {
+        //     return res.status(200).json({ message: errors.array()[0].msg });
+        // }
+
+        // Find the task
+        // const task = await Task.findOne({ where: { id: taskId } });
+
+        // if (!task) {
+        //     return res.status(200).json({ success: 0, error: 'Task not found' });
+        // }
+
+        // Assign the task to users
+        for (const uId of userId) {
+            const develop = await TaskAssign.findOne({
+                where: { proId: proId, userId: uId }
+            });
+
+            if (!develop) {
+                await TaskAssign.create({
+                    proId: proId,
+                    userId: uId
+                });
+            }
+        }
+
+        res.status(200).json({ success: 1, data: develop, message: "Task Assigned successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
+    }
+};
+
+// Create Notes :-
 exports.createNotes = async (req, res) => {
     try {
         const data = await User.findOne({ where: { id: req.body.userId } })
@@ -696,7 +749,7 @@ exports.createNotes = async (req, res) => {
     }
 }
 
-//
+// update notes :-
 exports.updateNotes = async (req, res) => {
     try {
         const data = await Notes.update({
@@ -712,7 +765,7 @@ exports.updateNotes = async (req, res) => {
     }
 }
 
-// 
+// delete notes :-
 exports.deleteNotes = async (req, res) => {
     try {
         const data = await Notes.destroy({
@@ -739,6 +792,20 @@ exports.addClientApi = async (req, res) => {
     }
 }
 
+// drop down client api :-
+exports.clientList = async (req, res) => {
+    try {
+        const showData = await Client.findAll({
+            attributes: ['id', 'clientName']
+        })
+        res.status(200).json({ success: 1, data: showData });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
+    }
+}
+
 //create project api
 exports.projectApi = async (req, res) => {
     try {
@@ -750,16 +817,8 @@ exports.projectApi = async (req, res) => {
             proLead: req.body.proLead,
             deptId: req.body.deptId,
             clientId: req.body.clientId,
-            orgId: req.body.orgId,
-
+            orgId: req.body.orgId
         })
-            .then(async (develop) => {
-                if (!develop) {
-                    projectAssign.create({
-                        userId: req.body.userId
-                    })
-                }
-            })
         res.status(200).json({ success: 1, data: data, message: "Project created successfully" });
     }
     catch (error) {
@@ -770,7 +829,7 @@ exports.projectApi = async (req, res) => {
 
 // project assign :-
 exports.projectAssign = async (req, res) => {
-    const { proId, id, userId } = req.body;
+    const { proId, userId } = req.body;
     try {
         // // Find the project
         // const project = await Project.findOne({
@@ -779,18 +838,13 @@ exports.projectAssign = async (req, res) => {
         // if (!project) {
         //     return res.status(200).json({ success: 0, error: 'Project not found' });
         // }
-        if (!proName || !Array.isArray(userId) || userId.length === 0) {
-            return res.status(400).json({ success: 0, message: "Invalid project name or userId array" });
-        }
-
-        const proId = Project.id;
 
         // Assign the project to users
         for (const uId of userId) {
             ProjectAssign.findOne({
                 where:
                 {
-                    proId: proId,
+                    //proId: proId,
                     userId: uId
                 }
             })
@@ -833,20 +887,6 @@ exports.proAssignUserList = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// drop down client api :-
-exports.clientList = async (req, res) => {
-    try {
-        const showData = await Client.findAll({
-            attributes: ['id', 'clientName']
-        })
-        res.status(200).json({ success: 1, data: showData });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message });
     }
 }
 

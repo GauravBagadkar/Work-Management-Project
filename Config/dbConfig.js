@@ -48,6 +48,12 @@ db.user.belongsTo(db.role, { foreignKey: 'roleId' });
 db.orgUser.belongsTo(db.user, { foreignKey: 'userId' });
 db.orgUser.belongsTo(db.orgs, { foreignKey: 'orgId' });
 
+db.project.belongsTo(db.client, { foreignKey: 'clientId' });
+db.project.belongsTo(db.orgs, { foreignKey: 'orgId' });
+
+db.projectAssign.belongsTo(db.user, { foreignKey: 'userId' })
+db.projectAssign.belongsTo(db.project, { foreignKey: 'proId' })
+
 db.task.belongsTo(db.user, { foreignKey: 'userId' });
 db.task.belongsTo(db.priority, { foreignKey: 'priorityId' });
 db.task.belongsTo(db.status, { foreignKey: 'statusId' });
@@ -60,10 +66,6 @@ db.taskAssign.belongsTo(db.task, { foreignKey: 'taskId' });
 
 db.notes.belongsTo(db.user, { foreignKey: 'userId' });
 
-db.project.belongsTo(db.client, { foreignKey: 'clientId' });
-db.project.belongsTo(db.orgs, { foreignKey: 'orgId' });
 
-db.projectAssign.belongsTo(db.user, { foreignKey: 'userId' })
-db.projectAssign.belongsTo(db.project, { foreignKey: 'proId' })
 
 module.exports = db;
