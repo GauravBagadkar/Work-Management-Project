@@ -48,20 +48,17 @@ module.exports = (sequelize, Sequelize) => {
         taskProductivityHrs: {//
             type: Sequelize.TIME
         },
-        userId: {
-            type: Sequelize.INTEGER
-        },
         proId: {
             type: Sequelize.INTEGER
         },
         priorityId: {
-            type: Sequelize.BIGINT
+            type: Sequelize.INTEGER
         },
         statusId: {
-            type: Sequelize.BIGINT
+            type: Sequelize.INTEGER
         },
         categoryId: {
-            type: Sequelize.BIGINT
+            type: Sequelize.INTEGER
         },
 
     })

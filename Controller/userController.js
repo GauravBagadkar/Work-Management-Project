@@ -19,6 +19,7 @@ const multer = require('multer'); // for uploading the photo
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');  // generating random token
 const projectAssign = require('../Models/projectAssign');
+const task = require('../Models/task');
 const Mp = Sequelize.Op;
 
 const Org = db.orgs;
@@ -675,7 +676,7 @@ exports.tskCategoryApi = async (req, res) => {
     }
 }
 
-// Create Task :- ✔
+// Create Task and assign :- ✔
 exports.createTaskApi = async (req, res) => {
     try {
         const data = await Task.create({
@@ -683,9 +684,11 @@ exports.createTaskApi = async (req, res) => {
             taskDesc: req.body.taskDesc,
             startDate: req.body.startDate,
             endDate: req.body.endDate,
-            proId: req.body.projectId,
+            proId: req.body.proId,
             priorityId: req.body.priorityId,
             statusId: req.body.statusId,
+            categoryId: req.body.categoryId
+
         })
         // task assign to user
         const proId = req.body.proId;
@@ -705,7 +708,7 @@ exports.createTaskApi = async (req, res) => {
                 });
             }
         }
-        res.status(200).json({ success: 1, data: data, message: "task created & assigned successfully" });
+        res.status(200).json({ success: 1, message: "task created & assigned successfully" });
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
@@ -803,7 +806,7 @@ exports.clientList = async (req, res) => {
     }
 }
 
-//create project api
+//create project and assign api :-
 exports.projectApi = async (req, res) => {
     try {
         const data = await Project.create({
@@ -814,9 +817,11 @@ exports.projectApi = async (req, res) => {
             proLead: req.body.proLead,
             deptId: req.body.deptId,
             clientId: req.body.clientId,
-            orgId: req.body.orgId
+            orgId: req.body.orgId,
+            categoryId: req.body.categoryId
         })
         // project assign to user
+        const clientId = req.body.clientId;
         for (const uId of req.body.userId) {
             const develop = await ProjectAssign.findOne({
                 where:
@@ -824,10 +829,10 @@ exports.projectApi = async (req, res) => {
                     userId: uId
                 }
             });
-
             if (!develop) {
                 await ProjectAssign.create({
                     proId: data.id,
+                    clientId: clientId,
                     userId: uId
                 });
             }
@@ -837,6 +842,20 @@ exports.projectApi = async (req, res) => {
     catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// Project list 
+exports.projectList = async (req, res) => {
+    try {
+        const showData = await Project.findAll({
+            attributes: ['id', 'proName']
+        })
+        res.status(200).json({ success: 1, data: showData });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message });
     }
 }
 
@@ -858,7 +877,7 @@ exports.proAssignUserList = async (req, res) => {
         });
         // Extract user data into a flat array
         // const userData = data.map(assign => assign.tblUsers);
-        res.status(200).json({ success: 1, data: userData, message: "showing assigned user in project" })
+        res.status(200).json({ success: 1, data: data, message: "showing assigned user in project" })
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
@@ -876,6 +895,53 @@ exports.userDropDownList = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// pie chart of task 
+exports.pieTask = async (req, res) => {
+    try {
+        // const data = await task
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+//
+exports.getProject = async (req, res) => {
+    try {
+        const showData = await ProjectAssign.findAll({
+            attributes: ['userId',
+                [Sequelize.col('"tblClient"."clientName"'), "clientName"],
+                [Sequelize.col('"tblUser"."name"'), "name"],
+                [Sequelize.col('"tblProject"."id"'), "id"],
+                [Sequelize.col('"tblProject"."proName"'), "proName"],
+                [Sequelize.col('"tblProject"."startDate"'), "startDate"],
+                [Sequelize.col('"tblProject"."deadLine"'), "deadLine"],
+            ],
+            include: [
+                {
+                    model: Client,
+                    as: "tblClient",
+                    attributes: []
+                },
+                {
+                    model: User,
+                    as: "tblUser",
+                    attributes: []
+                },
+                {
+                    model: Project,
+                    as: "tblProject",
+                    attributes: []
+                }
+            ]
+        });
+        res.status(200).json({ success: 1, data: showData });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ message: error.message });
     }
 }
 
