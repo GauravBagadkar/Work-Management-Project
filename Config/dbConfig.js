@@ -2,24 +2,24 @@ require('dotenv').config();
 const pg = require('pg');
 const Sequelize = require('sequelize').Sequelize;
 
-const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
-    host: 'localhost',
-    dialect: 'postgres',
-    port: '5432',
-    logging: false
-});
-
-// const sequelize = new Sequelize(process.env.DATABASE_URL, {
+// const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
+//     host: 'localhost',
 //     dialect: 'postgres',
-//     dialectModule: pg,
-//     dialectOptions: {
-//         ssl: {
-//             require: true,
-//             rejectUnauthorized: false
-//         }
-//     },
-//     logging: true
+//     port: '5432',
+//     logging: false
 // });
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    dialectModule: pg,
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false
+        }
+    },
+    logging: true
+});
 
 const db = {};
 db.Sequelize = Sequelize;
