@@ -711,27 +711,50 @@ exports.createTaskApi = async (req, res) => {
             statusId: 1,
             categoryId: req.body.categoryId
         })
-        // task assign to user
-        const proId = req.body.proId;
-        const statusId = 1;
-        for (const uId of req.body.userId) {
-            const develop = await TaskAssign.findOne({
-                where:
-                {
-                    proId: proId,
-                    userId: uId
+            // task assign to user
+            // const proId = req.body.proId;
+            // const statusId = 1;
+            // for (const uId of req.body.userId) {
+            //     const develop = await TaskAssign.findOne({
+            //         where:
+            //         {
+            //             proId: proId,
+            //             userId: uId
+            //         }
+            //     });
+            //     if (!develop) {
+            //         await TaskAssign.create({
+            //             taskId: data.id,
+            //             proId: proId,
+            //             statusId: statusId,
+            //             userId: uId
+            //         });
+            //     }
+            // }
+            // res.status(200).json({ success: 1, message: "task created & assigned successfully" });
+
+            .then(async (theData) => {
+                const statusId = 1;
+                if (theData) {
+                    for (const uId of req.body.userId) {
+                        await TaskAssign.create({
+                            taskId: theData.id,
+                            proId: req.body.proId,
+                            userId: uId,
+                            statusId: statusId,
+                        }).then(async () => {
+                            const userdetails = await User.findOne({
+                                where: { id: uId }
+                            })
+                            // theData.dataValues.userName = userdetails.name
+                            // console.log(theData);
+                        })
+                    }
+
+                    res.status(200).json({ success: 1, data: theData, message: "Task created successfully" });
                 }
-            });
-            if (!develop) {
-                await TaskAssign.create({
-                    taskId: data.id,
-                    proId: proId,
-                    statusId: statusId,
-                    userId: uId
-                });
-            }
-        }
-        res.status(200).json({ success: 1, message: "task created & assigned successfully" });
+            })
+
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
@@ -901,28 +924,52 @@ exports.projectApi = async (req, res) => {
             categoryId: req.body.categoryId,
             statusId: 1
         })
-        // project assign to user
-        const orgId = req.body.orgId;
-        const clientId = req.body.clientId;
-        const statusId = 1;
-        for (const uId of req.body.userId) {
-            const develop = await ProjectAssign.findOne({
-                where:
-                {
-                    userId: uId
+            // project assign to user
+            // const orgId = req.body.orgId;
+            // const clientId = req.body.clientId;
+            // const statusId = 1;
+            // for (const uId of req.body.userId) {
+            //     const develop = await ProjectAssign.findOne({
+            //         where:
+            //         {
+            //             userId: uId
+            //         }
+            //     });
+            //     if (!develop) {
+            //         await ProjectAssign.create({
+            //             proId: data.id,
+            //             orgId: orgId,
+            //             clientId: clientId,
+            //             userId: uId,
+            //             statusId: statusId
+            //         });
+            //     }
+            // }
+            //res.status(200).json({ success: 1, data: data, message: "Project created & assigned successfully" });
+            .then(async (theData) => {
+                const orgId = req.body.orgId;
+                const clientId = req.body.clientId;
+                const statusId = 1;
+                if (theData) {
+                    for (const uId of req.body.userId) {
+                        await ProjectAssign.create({
+                            proId: theData.id,
+                            orgId: orgId,
+                            clientId: clientId,
+                            userId: uId,
+                            statusId: statusId
+                        }).then(async () => {
+                            const userdetails = await ProjectAssign.findOne({
+                                where: { id: uId }
+                            })
+                            // theData.dataValues.userName = userdetails.name
+                            // console.log(theData);
+                        })
+                    }
+
+                    res.status(200).json({ success: 1, data: theData, message: "Project created successfully" });
                 }
-            });
-            if (!develop) {
-                await ProjectAssign.create({
-                    proId: data.id,
-                    orgId: orgId,
-                    clientId: clientId,
-                    userId: uId,
-                    statusId: statusId
-                });
-            }
-        }
-        res.status(200).json({ success: 1, data: data, message: "Project created & assigned successfully" });
+            })
     }
     catch (error) {
         console.log(error);
@@ -986,26 +1033,8 @@ exports.getProject = async (req, res) => {
             ],
             where: ({ orgId: req.body.orgId })
         })
-            .then(async (Projects) => {
-                if (Projects) {
-                    const presentDate = moment(new Date());
-                    const momentDate = presentDate.format('YYYY-MM-DD');
-
-                    let overdue = 0 // no
-                    for (const project of Projects) {
-                        // console.log(task.endDate);
-                        if (project.statusName == 1 && project.deadLine >= momentDate) {
-                            overdue = 0 // no
-                        } else if (project.statusName == 1) {
-                            overdue = 1 //yes
-                        }
-                        project.overDue = overdue
-                    }
-                }
-                res.status(200).json({ success: 1, data: Projects });
-            })
-
         res.status(200).json({ success: 1, data: showData });
+
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message });
