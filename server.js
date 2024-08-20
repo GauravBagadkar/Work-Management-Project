@@ -60,7 +60,7 @@ const swaggerSpec = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 const routes = require('./Routes/route');
-app.use('/', routes);
+app.use('/api', routes);
 //api
 // Error handler middleware
 app.use((err, req, res, next) => {
