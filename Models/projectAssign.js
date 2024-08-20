@@ -16,6 +16,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         orgId: {
             type: Sequelize.INTEGER
+        },
+        statusId: {
+            type: Sequelize.INTEGER
         }
     })
     return projectAssign;

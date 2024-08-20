@@ -10,7 +10,6 @@ router.get('/statusList', userController.tskStatusList);
 router.get('/clientList', userController.clientList);
 router.get('/showEmpDetails', userController.showEmpDetails);
 router.get('/tskCategoryList', userController.tskCategoryList);
-router.get('/projectList', userController.projectList);
 router.get('/getReport', userController.getReport);
 
 router.post('/orgApi', userController.orgRegistration);
@@ -35,6 +34,8 @@ router.post('/createNotes', userController.createNotes);
 router.post('/updateNotes', userController.updateNotes);
 router.post('/deleteNotes', userController.deleteNotes);
 router.post('/createProject', userController.projectApi);
+router.post('/deleteProject', userController.deleteProject);
+router.post('/updateProject', userController.updateProject);
 router.post('/getProject', userController.getProject);
 router.post('/getTask', userController.getTask);
 router.post('/upsertReport', userController.upsertReport);

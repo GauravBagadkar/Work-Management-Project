@@ -452,7 +452,7 @@ exports.orgList = async (req, res) => {
         if (dataShow.count > 0) {
             res.status(200).json({ showingDetails: dataShow.rows, message: "data shown successfully" });
         } else {
-            res.status(200).json({ message: "organisation mail are invalid" });
+            res.status(200).json({ message: "organisation email are invalid" });
         }
     } catch (error) {
         console.log(error);
@@ -898,11 +898,13 @@ exports.projectApi = async (req, res) => {
             deptId: req.body.deptId,
             clientId: req.body.clientId,
             orgId: req.body.orgId,
-            categoryId: req.body.categoryId
+            categoryId: req.body.categoryId,
+            statusId: 1
         })
         // project assign to user
         const orgId = req.body.orgId;
         const clientId = req.body.clientId;
+        const statusId = 1;
         for (const uId of req.body.userId) {
             const develop = await ProjectAssign.findOne({
                 where:
@@ -915,7 +917,8 @@ exports.projectApi = async (req, res) => {
                     proId: data.id,
                     orgId: orgId,
                     clientId: clientId,
-                    userId: uId
+                    userId: uId,
+                    statusId: statusId
                 });
             }
         }
@@ -924,20 +927,6 @@ exports.projectApi = async (req, res) => {
     catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// Project list 
-exports.projectList = async (req, res) => {
-    try {
-        const showData = await Project.findAll({
-            attributes: ['id', 'proName']
-        })
-        res.status(200).json({ success: 1, data: showData });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message });
     }
 }
 
@@ -960,30 +949,6 @@ exports.proAssignUserList = async (req, res) => {
         // Extract user data into a flat array
         // const userData = data.map(assign => assign.tblUsers);
         res.status(200).json({ success: 1, data: data, message: "showing assigned user in project" })
-    } catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// user drop down list according to org :-
-exports.userDropDownList = async (req, res) => {
-    try {
-        const data = await User.findAll({
-            attributes: ['id', 'name'],
-            where: { orgId: req.body.orgId },
-        })
-        res.status(200).json({ success: 1, data: data });
-    } catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-// pie chart of task 
-exports.pieTask = async (req, res) => {
-    try {
-        // const data = await task
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message })
@@ -1020,13 +985,58 @@ exports.getProject = async (req, res) => {
                 }
             ],
             where: ({ orgId: req.body.orgId })
-        });
+        })
+            .then(async (Projects) => {
+                if (Projects) {
+                    const presentDate = moment(new Date());
+                    const momentDate = presentDate.format('YYYY-MM-DD');
+
+                    let overdue = 0 // no
+                    for (const project of Projects) {
+                        // console.log(task.endDate);
+                        if (project.statusName == 1 && project.deadLine >= momentDate) {
+                            overdue = 0 // no
+                        } else if (project.statusName == 1) {
+                            overdue = 1 //yes
+                        }
+                        project.overDue = overdue
+                    }
+                }
+                res.status(200).json({ success: 1, data: Projects });
+            })
+
         res.status(200).json({ success: 1, data: showData });
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message });
     }
 }
+
+// user drop down list according to org :-
+exports.userDropDownList = async (req, res) => {
+    try {
+        const data = await User.findAll({
+            attributes: ['id', 'name'],
+            where: { orgId: req.body.orgId },
+        })
+        res.status(200).json({ success: 1, data: data });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+// pie chart of task 
+exports.pieTask = async (req, res) => {
+    try {
+        // const data = await task
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
+    }
+}
+
+
 
 // generate Report Api :- 
 exports.upsertReport = async (req, res) => {
@@ -1069,6 +1079,7 @@ exports.deleteProject = async (req, res) => {
             {
                 where: { id: req.body.id },
             });
+        res.status(200).json({ success: 1, data: deletePro, message: "Project deleted successfully" });
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message });
@@ -1090,8 +1101,21 @@ exports.updateProject = async (req, res) => {
             {
                 where: { id: req.body.id },
             })
+        res.status(200).json({ success: 1, data: data, message: "Project updated successfully" });
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, message: error.message });
+    }
+}
+
+// dashboard project api
+exports.dashProApi = async (req, res) => {
+    try {
+        const data = await Project.findAndCountAll({
+
+        })
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, messag: error.message });
     }
 }
