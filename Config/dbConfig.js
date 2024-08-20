@@ -2,24 +2,24 @@ require('dotenv').config();
 const pg = require('pg');
 const Sequelize = require('sequelize').Sequelize;
 
-// const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
-//     host: 'localhost',
-//     dialect: 'postgres',
-//     port: '5432',
-//     logging: false
-// });
-
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = new Sequelize('workManagement', 'postgres', 'HsmOnline', {
+    host: 'localhost',
     dialect: 'postgres',
-    dialectModule: pg,
-    dialectOptions: {
-        ssl: {
-            require: true,
-            rejectUnauthorized: false
-        }
-    },
-    logging: true
+    port: '5432',
+    logging: false
 });
+
+// const sequelize = new Sequelize(process.env.DATABASE_URL, {
+//     dialect: 'postgres',
+//     dialectModule: pg,
+//     dialectOptions: {
+//         ssl: {
+//             require: true,
+//             rejectUnauthorized: false
+//         }
+//     },
+//     logging: true
+// });
 
 const db = {};
 db.Sequelize = Sequelize;
@@ -40,9 +40,7 @@ db.notes = require('../Models/notes')(sequelize, Sequelize);
 db.client = require('../Models/client')(sequelize, Sequelize);
 db.projectAssign = require('../Models/projectAssign')(sequelize, Sequelize);
 db.orgUser = require('../Models/orgUsers')(sequelize, Sequelize);
-
-db.activityMonitor = require('../Models/activityMonitor')(sequelize, Sequelize);
-db.timeEntryMonitor = require('../Models/timeEntryMonitor')(sequelize, Sequelize);
+db.report = require('../Models/report')(sequelize, Sequelize);
 
 // connecting models
 db.user.belongsTo(db.dept, { foreignKey: 'deptId' });
@@ -53,27 +51,23 @@ db.orgUser.belongsTo(db.orgs, { foreignKey: 'orgId' });
 
 db.project.belongsTo(db.client, { foreignKey: 'clientId' });
 db.project.belongsTo(db.orgs, { foreignKey: 'orgId' });
-
 db.projectAssign.belongsTo(db.user, { foreignKey: 'userId' })
 db.projectAssign.belongsTo(db.project, { foreignKey: 'proId' })
 db.projectAssign.belongsTo(db.client, { foreignKey: 'clientId' })
+db.projectAssign.belongsTo(db.orgs, { foreignKey: 'orgId' })
 
-db.task.belongsTo(db.user, { foreignKey: 'userId' });
-db.task.belongsTo(db.priority, { foreignKey: 'priorityId' });
-db.task.belongsTo(db.status, { foreignKey: 'statusId' });
-db.task.belongsTo(db.taskCategory, { foreignKey: 'categoryId' });
-db.task.belongsTo(db.project, { foreignKey: 'proId' });
-
+//db.task.belongsTo(db.user, { foreignKey: 'userId' });
+//db.task.belongsTo(db.status, { foreignKey: 'statusId' });
+db.task.belongsTo(db.priority, { foreignKey: 'priorityId' });//✔
+db.task.belongsTo(db.taskCategory, { foreignKey: 'categoryId' });//✔
+db.task.belongsTo(db.project, { foreignKey: 'proId' });//✔
 db.taskAssign.belongsTo(db.user, { foreignKey: 'userId' });
 db.taskAssign.belongsTo(db.project, { foreignKey: 'proId' });
 db.taskAssign.belongsTo(db.task, { foreignKey: 'taskId' });
+db.taskAssign.belongsTo(db.status, { foreignKey: 'statusId' });
 
 db.notes.belongsTo(db.user, { foreignKey: 'userId' });
 
-//
-db.activityMonitor.belongsTo(db.user, { foreignKey: 'employee_id' });
-db.activityMonitor.belongsTo(db.timeEntryMonitor, { foreingKey: 'time_entry_id' });
-
-
+db.report.belongsTo(db.user, { foreignKey: 'enployee_id' });
 
 module.exports = db;

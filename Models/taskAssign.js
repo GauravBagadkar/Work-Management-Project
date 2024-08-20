@@ -13,7 +13,11 @@ module.exports = (sequelize, Sequelize) => {
         },
         taskId: {
             type: Sequelize.INTEGER
+        },
+        statusId: {
+            type: Sequelize.INTEGER
         }
+
     })
     return tskAssign;
 }

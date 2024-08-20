@@ -30,7 +30,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING
         },
         profile: {
-            type: Sequelize.STRING
+            type: Sequelize.BLOB
         },
         deptId: {
             type: Sequelize.BIGINT
