@@ -39,6 +39,8 @@ router.post('/updateProject', userController.updateProject);
 router.post('/getProject', userController.getProject);
 router.post('/getTask', userController.getTask);
 router.post('/upsertReport', userController.upsertReport);
+router.post('/pieTask', userController.pieTask);
+
 
 router.post('/addClient', userController.addClientApi);
 router.post('/userDropDownList', userController.userDropDownList);

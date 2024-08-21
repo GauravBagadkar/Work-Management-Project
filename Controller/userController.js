@@ -1055,18 +1055,6 @@ exports.userDropDownList = async (req, res) => {
     }
 }
 
-// pie chart of task 
-exports.pieTask = async (req, res) => {
-    try {
-        // const data = await task
-    } catch (error) {
-        console.log(error);
-        res.status(200).json({ success: 0, message: error.message })
-    }
-}
-
-
-
 // generate Report Api :- 
 exports.upsertReport = async (req, res) => {
     try {
@@ -1146,5 +1134,31 @@ exports.dashProApi = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(200).json({ success: 0, messag: error.message });
+    }
+}
+
+// pie chart of task 
+exports.pieTask = async (req, res) => {
+    try {
+        const data = await TaskAssign.findAll({
+            attributes: [
+                [Sequelize.col('statusId'), 'statusId'],
+                [Sequelize.col('"tblStatus"."statusName"'), "statusName"],
+                [Sequelize.fn('COUNT', Sequelize.col('taskId')), 'taskCount']
+            ],
+            include: [
+                {
+                    model: Status,
+                    as: "tblStatus",
+                    attributes: []
+                },
+            ],
+            where: { userId: req.body.userId },
+            group: ['statusId', 'tblStatus.statusName'],
+        })
+        res.status(200).json({ success: 1, data: data });
+    } catch (error) {
+        console.log(error);
+        res.status(200).json({ success: 0, message: error.message })
     }
 }
